@@ -1045,3 +1045,37 @@ spec:
   purpose: Informational
   tags: crowdstrike, plist, network, content filter
   contributors: zwass
+---
+apiVersion: v1
+kind: policy
+spec:
+  name: SELinux is Enforcing
+  platform: linux
+  description: Augeus checks for value=enforcing in the config file
+  query: SELECT 1 from augeas where path='/etc/selinux/config' and value='enforcing';
+  purpose: compliance
+  tags: linux, selinux,compliance
+  contributors: cdreppard
+---
+apiVersion: v1
+kind: policy
+spec:
+  name: MacOS Posture Check
+  platform: macos
+  description: Validates (Automatic Software Updates, Disk Encryption, Firewall Enabled, Gatekeeper Enabled, and System Integrity Protection Enabled), any failures report No
+  query: SELECT 1 from plist p, disk_encryption de,alf a, gatekeeper gk, sip_config sc WHERE p.path = '/Library/Preferences/com.apple.SoftwareUpdate.plist' AND p.key = 'AutomaticCheckEnabled' AND de.user_uuid IS NOT "" AND de.filevault_status = 'on' AND a.global_state = 1 AND gk.assessments_enabled = 1 AND sc.config_flag = 'sip' AND sc.enabled = 1;
+  purpose: compliance
+  tags: macos,compliance
+  contributors: cdreppard
+---
+apiVersion: v1
+kind: policy
+spec:
+  name: Linux: RPM Updates occurred in last 30days?
+  platform: linux
+  description: Checks the RPM package install dates to determine if any have been updated in last 30 days
+  query: SELECT 1 WHERE EXISTS(select name,version,release,datetime(install_time,'unixepoch') AS updated from rpm_packages WHERE updated > datetime('now', '-30 days') ORDER By updated DESC LIMIT 1);
+  purpose: compliance
+  tags: linux, configuration,compliance
+  contributors: cdreppard
+---
